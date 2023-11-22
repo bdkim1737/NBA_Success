@@ -39,14 +39,24 @@ colcon <- college2014_2018[,-c(0,1,2,3,5,6,7,8,9,10,11,14,20,22)]
 
 #Changing column names and getting rid of first row that was acting like a column title
 names(colcon)[names(colcon) == "Round.1"] <- "Player"
-names(colcon)[names(colcon) == "Shooting"] <- "FG%"
-names(colcon)[names(colcon) == "X.9"] <- "3P%"
+names(colcon)[names(colcon) == "Shooting"] <- "FG"
+names(colcon)[names(colcon) == "X.9"] <- "ThreeP"
 names(colcon)[names(colcon) == "Per.Game"] <- "MP"
 names(colcon)[names(colcon) == "X.11"] <- "PTS"
 names(colcon)[names(colcon) == "X.12"] <- "TRB"
 names(colcon)[names(colcon) == "X.13"] <- "AST"
 names(colcon)[names(colcon) == "Advanced"] <- "WS"
 names(colcon)[names(colcon) == "X.15"] <- "BPM"
+
+#Changing character to number
+colcon$FG <- as.numeric(colcon$FG)
+colcon$ThreeP <- as.numeric(colcon$ThreeP)
+colcon$MP <- as.numeric(colcon$MP)
+colcon$PTS <- as.numeric(colcon$PTS)
+colcon$TRB <- as.numeric(colcon$TRB)
+colcon$AST <- as.numeric(colcon$AST)
+colcon$WS <- as.numeric(colcon$WS)
+colcon$BPM <- as.numeric(colcon$BPM)
 
 #Getting rid of players not in both of datasets
 common_players <- inner_join(NBAstat, colcon, by = "Player") %>% 
