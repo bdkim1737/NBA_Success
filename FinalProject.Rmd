@@ -1,0 +1,123 @@
+---
+title: "Analysis of College Basketball Statistics and NBA Success Prediction"
+author: "John Ajit, Nathan Dorsey, Ben Kim"
+output: pdf_document
+fontsize: 12pt
+header-includes:
+- \usepackage{caption}
+- \captionsetup[figure]{labelformat=empty}
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  comment = "#", 
+  cache = FALSE,  
+  collapse = TRUE,
+  error = TRUE,
+  tidy.opts=list(width.cutoff=65)
+)
+```
+
+```{r set up data, echo=FALSE, message=FALSE, warning=FALSE}
+#bring in library dplyr
+library(dplyr)
+
+#read csv files and bring out columns which will get in the way of the rbind function
+NBA1 <- read.csv("NBA_Player_Stats.csv")
+NBA2 <- read.csv("NBA_Player_Stats_2.csv")
+NBA2$MVP <- NULL
+names(NBA2)[names(NBA2) == "Season"] <- "Year"
+
+#rbind and concatenate to only necessary stats (NBA)
+rawNBA <- rbind(NBA1, NBA2)
+NBAcon <- rawNBA[,-c(0, 1, 4, 5, 6, 7, 8, 9, 10, 12, 13, 15, 16, 17, 18, 19, 20, 21, 22, 23,29, 31)]
+
+#averaging the stats into one column by player name
+NBAstat <- NBAcon %>%
+  group_by(Player) %>%
+  summarize(
+    Pos = last(Pos),
+    across(where(is.numeric), ~ round(mean(., na.rm = TRUE), 3)),
+    .groups = "drop"
+  )
+
+#rbind and concatenate to only necessary stats (college)
+college2016 <- read.csv("sportsref_download.csv")
+college2016 <- college2016[-1, ]
+college2014 <- read.csv("sportsref_download2014.csv")
+college2014 <- college2014[-1, ]
+college2015 <- read.csv("sportsref_download2015.csv")
+college2015 <- college2015[-1, ]
+college2017 <- read.csv("sportsref_download2017.csv")
+college2017 <- college2017[-1, ]
+college2018 <- read.csv("sportsref_download2018.csv")
+college2018 <- college2018[-1, ]
+
+college2014_2018 <- rbind(college2014, college2015, college2016, college2017, college2018)
+
+colcon <- college2014_2018[,-c(0,1,2,3,5,6,7,8,9,10,11,14,20,22)]
+
+
+#Changing column names and getting rid of first row that was acting like a column title
+names(colcon)[names(colcon) == "Round.1"] <- "Player"
+names(colcon)[names(colcon) == "Shooting"] <- "FG%"
+names(colcon)[names(colcon) == "X.9"] <- "3P%"
+names(colcon)[names(colcon) == "Per.Game"] <- "MP"
+names(colcon)[names(colcon) == "X.11"] <- "PTS"
+names(colcon)[names(colcon) == "X.12"] <- "TRB"
+names(colcon)[names(colcon) == "X.13"] <- "AST"
+names(colcon)[names(colcon) == "Advanced"] <- "WS"
+names(colcon)[names(colcon) == "X.15"] <- "BPM"
+
+# Getting rid of players not in both of datasets
+common_players <- inner_join(NBAstat, colcon, by = "Player") %>% 
+  select(Player)
+
+# Filter both datasets to include only common players
+NBAstat <- NBAstat %>% 
+  semi_join(common_players, by = "Player")
+
+colcon <- colcon %>% 
+  semi_join(common_players, by = "Player")
+
+# Add formula (PER) as a column so it is a stat for each player
+# Changing this when I get updated data
+colcon$PER <- (1.35 * as.numeric(colcon$PTS)) + (0.6* as.numeric(colcon$TRB)) + (0.9*as.numeric(colcon$AST))
+
+NBAstat$PER <- (1.35 * as.numeric(NBAstat$PTS)) + (0.6* as.numeric(NBAstat$TRB)) + (0.9*as.numeric(NBAstat$AST)) + (0.2*as.numeric(NBAstat$BLK)) + (0.45*as.numeric(NBAstat$STL)) - (0.5*as.numeric(NBAstat$TOV))
+```
+
+## Abstract
+
+This report aims to analyze college basketball statistics to predict success in the NBA. A simplified version of the already existing Player Efficiency Rating (PER) has been developed and compared with Win Share statistics for various college basketball players. The findings are expected to offer insights into the predictive value of college performance for NBA success.
+
+## Introduction
+
+The world of professional basketball is highly competitive, with college basketball serving as a key talent pool for the NBA. Understanding the correlation between a player's college performance and their subsequent NBA success is vital for scouts and teams. This study introduces a new metric, PER, to evaluate this correlation.
+
+## Methods
+
+The analysis involved collecting and processing data from two primary sources: college basketball statistics and NBA player stats. Data was cleaned, transformed, and merged to facilitate a comparative analysis. The PER metric was calculated for each player, and a linear regression model was used to evaluate the relationship between PER and Win Share.
+
+## Results
+
+The analysis focused on comparing the Player Efficiency Rating (PER) with Win Share (WS) for college basketball players and examining how these metrics correlate with their performance in the NBA.
+
+### College Basketball Players' Performance
+
+The scatter plot below shows the relationship between PER and WS for college basketball players. A linear regression line (in red) indicates the trend.
+
+```{r plot college stats, echo=FALSE, message=FALSE, warning=FALSE}
+plot(colcon$WS, colcon$PER, main="Player Efficiency Rating vs. Win Share in College", xlab="Win Share", ylab="Player Efficiency Rating (PER)", pch=19, col="blue")
+m_college <- lm(PER ~ WS, data=colcon)
+abline(m_college, col='red')
+```
+The correlation between the PER we developed and Win Share suggests that this metric is a good indicator of success, and could possibly also be used as a good predictor of a college player's success in the NBA. 
+``` {r plot NBA stats, echo=FALSE, message=FALSEm warning=FALSE}
+# Can't plot NBA stats yet, don't have updated data with win share. 
+```
+
+## Discussion
+
+This study's findings have significant implications for player scouting and draft decisions in professional basketball. The correlation (or lack thereof) between PER and NBA success could lead to reevaluation of scouting strategies. (This is waffling, I'll have an actual discussion once all the data is analyzed and plotted and I can actually make sense of the data and the graphs.)
+
+
