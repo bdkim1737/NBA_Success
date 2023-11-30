@@ -4,6 +4,7 @@ library(dplyr)
 #read csv files and bring out columns which will get in the way of the rbind function
 NBA1 <- read.csv("NBA_Player_Stats.csv")
 NBA2 <- read.csv("NBA_Player_Stats_2.csv")
+WS <- read.csv("win_share.csv")
 NBA2$MVP <- NULL
 names(NBA2)[names(NBA2) == "Season"] <- "Year"
 
@@ -20,6 +21,8 @@ NBAstat <- NBAcon %>%
     .groups = "drop"
   )
 
+
+
 #rbind and concatenate to only necessary stats (college)
 college2016 <- read.csv("sportsref_download.csv")
 college2016 <- college2016[-1, ]
@@ -34,7 +37,7 @@ college2018 <- college2018[-1, ]
 
 college2014_2018 <- rbind(college2014, college2015, college2016, college2017, college2018)
 
-colcon <- college2014_2018[,-c(0,1,2,3,5,6,7,8,9,10,11,14,20,22)]
+colcon <- college2014_2018[,-c(0,1,2,3,5,6,7,8,9,10,11,20,22)]
 
 
 #Changing column names and getting rid of first row that was acting like a column title
@@ -47,6 +50,7 @@ names(colcon)[names(colcon) == "X.12"] <- "TRB"
 names(colcon)[names(colcon) == "X.13"] <- "AST"
 names(colcon)[names(colcon) == "Advanced"] <- "WS"
 names(colcon)[names(colcon) == "X.15"] <- "BPM"
+names(colcon)[names(colcon) == "X.10"] <- "FT"
 
 #Changing character to number
 colcon$FG <- as.numeric(colcon$FG)
@@ -68,4 +72,6 @@ NBAstat <- NBAstat %>%
 
 colcon <- colcon %>% 
   semi_join(common_players, by = "Player")
+
+NBAstat<- cbind(NBAstat,WS)
 
