@@ -55,6 +55,7 @@ names(colcon)[names(colcon) == "X.10"] <- "FT"
 #Changing character to number
 colcon$FG <- as.numeric(colcon$FG)
 colcon$ThreeP <- as.numeric(colcon$ThreeP)
+colcon$FT <- as.numeric(colcon$FT)
 colcon$MP <- as.numeric(colcon$MP)
 colcon$PTS <- as.numeric(colcon$PTS)
 colcon$TRB <- as.numeric(colcon$TRB)
